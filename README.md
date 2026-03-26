@@ -57,3 +57,56 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## SMTP configuration (Gmail / SendGrid)
+
+This project is configured to send mail via `smtp` using Laravel's default mail configuration in `config/mail.php`.
+
+1. Copy environment file if needed:
+
+```bash
+copy .env.example .env
+```
+
+2. Update mail settings in `.env` (examples are already included in `.env.example`):
+
+- **Gmail (App Password required)**
+  - `MAIL_HOST=smtp.gmail.com`
+  - `MAIL_PORT=587`
+  - `MAIL_SCHEME=tls`
+  - `MAIL_USERNAME=your_gmail_address@gmail.com`
+  - `MAIL_PASSWORD=your_16_character_google_app_password`
+  - `MAIL_FROM_ADDRESS=your_gmail_address@gmail.com`
+
+- **SendGrid (SMTP)**
+  - `MAIL_HOST=smtp.sendgrid.net`
+  - `MAIL_PORT=587`
+  - `MAIL_SCHEME=tls`
+  - `MAIL_USERNAME=apikey`
+  - `MAIL_PASSWORD=your_sendgrid_api_key`
+  - `MAIL_FROM_ADDRESS=verified-sender@yourdomain.com`
+
+3. Clear config cache after updating `.env`:
+
+```bash
+php artisan config:clear
+```
+
+4. Test mail flow (e.g., forgot password) from the app.
+
+## Default login accounts (seeded)
+
+After running the seeder, you can log in with these default accounts:
+
+- **Admin**
+  - Login: `admin@example.com`
+  - Password: `12345678`
+- **User**
+  - Login: `user` (or `user@example.com`)
+  - Password: `12345678`
+
+Run seeders:
+
+```bash
+php artisan db:seed
+```

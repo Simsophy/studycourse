@@ -4,37 +4,45 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class NewPasswordController extends Controller
 {
-    public function create($token)
+    public function create()
     {
-        return view('auth.reset-password', ['token' => $token]);
+        return view('auth.reset-password');
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'token'=>'required',
-            'email'=>'required|email',
-            'password'=>'required|confirmed|min:6',
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|digits:6',
+            'password' => ['required', 'confirmed', PasswordRule::min(8)->letters()->numbers()],
         ]);
 
-        $status = Password::reset(
-            $request->only('email','password','password_confirmation','token'),
-            function ($user, $password) {
-                $user->password = Hash::make($password);
-                $user->save();
-            }
-        );
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
 
-       $guard = request()->is('admins/*') ? 'admins' : 'user';
+        if (! $reset || ! Hash::check($request->otp, $reset->token)) {
+            return back()->withErrors(['otp' => __('Invalid verification code.')])->withInput($request->only('email'));
+        }
 
-return $status === Password::PASSWORD_RESET
-            ? redirect()->route($guard . '.login')->with('status', __($status))
-            : back()->withErrors(['email'=>[__($status)]]);
+        if (now()->diffInMinutes(Carbon::parse($reset->created_at)) > 15) {
+            return back()->withErrors(['otp' => __('Verification code has expired. Please request a new one.')])->withInput($request->only('email'));
+        }
+
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return redirect()->route('login')->with('status', __('Password reset successful. You can now log in.'));
     }
 }

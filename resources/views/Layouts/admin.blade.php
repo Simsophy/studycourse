@@ -87,12 +87,9 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('admin.logout') }}">
-                        @csrf
-                        <button class="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:bg-rose-600 hover:text-white active:scale-95 shadow-sm">
-                            {{ __('ui.logout') }}
-                        </button>
-                    </form>
+                    <a href="{{ route('admin.logout.form') }}" class="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:bg-rose-600 hover:text-white active:scale-95 shadow-sm">
+                        {{ __('ui.logout') }}
+                    </a>
                 @endauth
             </div>
         </header>

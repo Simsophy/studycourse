@@ -11,6 +11,8 @@ class CourseController extends Controller
     // Show all courses
     public function index()
     {
+        $this->authorize('viewAny', Course::class);
+
         $courses = Course::all();
         return view('admin.courses.index', compact('courses'));
     }
@@ -18,19 +20,23 @@ class CourseController extends Controller
     // Show create form
     public function create()
     {
+        $this->authorize('create', Course::class);
+
         return view('admin.courses.create');
     }
 
     // Store new course + first lesson
     public function store(Request $request)
     {
+        $this->authorize('create', Course::class);
+
         $request->validate([
-            'title' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
-            'lesson_title' => 'required|string|max:255',
-            'lesson_description' => 'nullable|string',
-            'lesson_video' => 'required|mimes:mp4,avi,mov,mpeg|max:102400', // max 100MB
+            'lesson_title' => 'nullable|string|max:255|required_with:lesson_description,lesson_video',
+            'lesson_description' => 'nullable|string|required_with:lesson_title,lesson_video',
+            'lesson_video' => 'nullable|mimes:mp4,avi,mov,mpeg|max:102400', // max 100MB
         ]);
 
         // Upload course image
@@ -38,23 +44,28 @@ class CourseController extends Controller
 
         // Create course
         $course = Course::create([
-            'title' => $request->title,
+            'name' => $request->name,
             'description' => $request->description,
             'image' => $imagePath,
-            'video_url' => null, // course itself does not store video
         ]);
 
-        // Upload lesson video
-        $lessonVideoPath = $request->hasFile('lesson_video') ? $request->file('lesson_video')->store('lessons/videos', 'public') : null;
+        $hasLessonInput = $request->filled('lesson_title')
+            || $request->filled('lesson_description')
+            || $request->hasFile('lesson_video');
 
-        // Create first lesson for course
-        $course->lessons()->create([
-            'admin_id' => auth('admin')->id(),
-            'title' => $request->lesson_title,
-            'description' => $request->lesson_description,
-            'video_url' => $lessonVideoPath,
-            'image' => null, // optional lesson image
-        ]);
+        // Create first lesson only when lesson data is provided
+        if ($hasLessonInput) {
+            $lessonVideoPath = $request->hasFile('lesson_video')
+                ? $request->file('lesson_video')->store('lessons/videos', 'public')
+                : null;
+
+            $course->lessons()->create([
+                'admin_id' => auth('admin')->id(),
+                'title' => $request->lesson_title,
+                'description' => $request->lesson_description,
+                'video_url' => $lessonVideoPath,
+            ]);
+        }
 
         return redirect()->route('admin.courses.index')
             ->with('success', 'Course and initial lesson created successfully');
@@ -63,16 +74,25 @@ class CourseController extends Controller
     // Show edit form
     public function edit(Course $course)
     {
+        $this->authorize('update', $course);
+
+        $course->load(['lessons.admin']);
+
         return view('admin.courses.edit', compact('course'));
     }
 
     // Update course
     public function update(Request $request, Course $course)
     {
+        $this->authorize('update', $course);
+
         $request->validate([
-            'title' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+            'lesson_title' => 'nullable|string|max:255|required_with:lesson_description,lesson_video',
+            'lesson_description' => 'nullable|string|required_with:lesson_title,lesson_video',
+            'lesson_video' => 'nullable|mimes:mp4,avi,mov,mpeg|max:102400',
         ]);
 
         // Keep current paths
@@ -88,10 +108,40 @@ class CourseController extends Controller
 
         // Update course
         $course->update([
-            'title' => $request->title,
+            'name' => $request->name,
             'description' => $request->description,
             'image' => $imagePath,
         ]);
+
+        $firstLesson = $course->lessons()->oldest('id')->first();
+        $hasLessonInput = $request->filled('lesson_title')
+            || $request->filled('lesson_description')
+            || $request->hasFile('lesson_video');
+
+        if ($hasLessonInput) {
+            $lessonVideoPath = $firstLesson?->video_url;
+
+            if ($request->hasFile('lesson_video')) {
+                if ($firstLesson?->video_url && file_exists(storage_path('app/public/' . $firstLesson->video_url))) {
+                    unlink(storage_path('app/public/' . $firstLesson->video_url));
+                }
+
+                $lessonVideoPath = $request->file('lesson_video')->store('lessons/videos', 'public');
+            }
+
+            $lessonPayload = [
+                'admin_id' => auth('admin')->id() ?? $firstLesson?->admin_id,
+                'title' => $request->lesson_title,
+                'description' => $request->lesson_description,
+                'video_url' => $lessonVideoPath,
+            ];
+
+            if ($firstLesson) {
+                $firstLesson->update($lessonPayload);
+            } else {
+                $course->lessons()->create($lessonPayload);
+            }
+        }
 
         return redirect()->route('admin.courses.index')
                          ->with('success', 'Course updated successfully!');
@@ -100,6 +150,8 @@ class CourseController extends Controller
     // Delete course
     public function destroy(Course $course)
     {
+        $this->authorize('delete', $course);
+
         // Delete course image
         if ($course->image && file_exists(storage_path('app/public/' . $course->image))) {
             unlink(storage_path('app/public/' . $course->image));

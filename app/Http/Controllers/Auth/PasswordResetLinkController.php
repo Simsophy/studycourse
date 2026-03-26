@@ -4,20 +4,51 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PasswordResetLinkController extends Controller
 {
+    public function create()
+    {
+        return view('auth.forgot-password');
+    }
+
     public function store(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $email = $request->input('email');
+        $otp = (string) random_int(100000, 999999);
 
-        return $status === Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withErrors(['email' => __($status)]);
+        try {
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $email],
+                [
+                    'token' => Hash::make($otp),
+                    'created_at' => now(),
+                ]
+            );
+
+            Mail::send('emails.password-otp', ['otp' => $otp, 'email' => $email], function ($message) use ($email) {
+                $message->to($email)->subject('Your Password Reset Code');
+            });
+        } catch (\Throwable $exception) {
+            Log::error('Password reset OTP sending failed.', [
+                'email' => $email,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'email' => __('Unable to send verification code right now. Please check mail configuration and try again.'),
+            ]);
+        }
+
+        return redirect()->route('password.reset', ['email' => $email])
+            ->with('status', __('A 6-digit verification code has been sent to your email.'));
     }
 }

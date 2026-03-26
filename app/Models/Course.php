@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Course extends Model
 {
     protected $fillable = [
-        'title',
+        'name',
         'description',
         'video_url',
         'image'
@@ -20,7 +20,7 @@ class Course extends Model
 }
 
 public function students() {
-    return $this->belongsToMany(User::class, 'lesson_user', 'course_id', 'user_id')
+    return $this->belongsToMany(User::class, 'course_user', 'course_id', 'user_id')
                 ->withTimestamps();
 }
 }

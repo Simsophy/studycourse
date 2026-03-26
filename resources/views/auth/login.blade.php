@@ -7,6 +7,12 @@
     <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-lg">
         <h1 class="text-2xl font-bold text-center mb-6">Student Login</h1>
 
+        @if (session('status'))
+            <div class="mb-4 p-3 bg-green-50 border-l-4 border-green-500 rounded text-green-700 text-sm">
+                {{ session('status') }}
+            </div>
+        @endif
+
         {{-- Display errors --}}
         @if ($errors->any())
             <div class="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
@@ -29,7 +35,12 @@
             <div>
                 <label class="block text-gray-600 mb-1">Password</label>
                 <input type="password" name="password" placeholder="Password"
+                       autocomplete="current-password"
                        class="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400" required>
+            </div>
+
+            <div class="text-right">
+                <a href="{{ route('password.request') }}" class="text-sm text-indigo-600 hover:underline">Forgot password?</a>
             </div>
 
             <button type="submit"

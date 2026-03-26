@@ -13,7 +13,7 @@ class IsAdmin
     public function handle(Request $request, Closure $next)
     {
         // Check if user is authenticated and is an admin using admins guard
-        if (!auth('admins')->check()) {
+        if (!auth('admin')->check()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized - Admin access required',

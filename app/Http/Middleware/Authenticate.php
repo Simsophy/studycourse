@@ -18,11 +18,18 @@ class Authenticate
      */
     public function handle(Request $request, Closure $next, ...$guards)
     {
-        if (!auth()->check()) {
-            return $this->redirectTo($request);
+        if (empty($guards)) {
+            $guards = [null];
         }
 
-        return $next($request);
+        foreach ($guards as $guard) {
+            if (auth()->guard($guard)->check()) {
+                auth()->shouldUse($guard);
+                return $next($request);
+            }
+        }
+
+        return $this->redirectTo($request);
     }
 
     /**
@@ -30,6 +37,12 @@ class Authenticate
      */
     protected function redirectTo($request)
     {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
         if (! $request->expectsJson()) {
 
             // Admin routes
@@ -39,11 +52,11 @@ class Authenticate
 
             // Student routes
             if ($request->is('user') || $request->is('user/*')) {
-                return redirect()->route('user.login');
+                return redirect()->route('login');
             }
 
             // fallback
-            return redirect()->route('user.login');
+            return redirect()->route('login');
         }
     }
 }

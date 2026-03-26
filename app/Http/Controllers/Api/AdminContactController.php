@@ -13,23 +13,32 @@ class AdminContactController extends Controller
      */
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'status' => 'nullable|in:pending,read,replied',
+            'search' => 'nullable|string|max:255',
+            'per_page' => 'nullable|integer|min:1|max:100',
+        ]);
+
         $query = Contact::latest();
 
         // Filter by status
-        if ($request->has('status')) {
-            $query->byStatus($request->status);
+        if (!empty($validated['status'])) {
+            $query->byStatus($validated['status']);
         }
 
         // Search in name, email, subject, message
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-                ->orWhere('subject', 'like', "%{$search}%")
-                ->orWhere('message', 'like', "%{$search}%");
+        if (!empty($validated['search'])) {
+            $search = $validated['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%")
+                    ->orWhere('message', 'like', "%{$search}%");
+            });
         }
 
-        $contacts = $query->paginate($request->input('per_page', 15));
+        $perPage = (int) ($validated['per_page'] ?? 15);
+        $contacts = $query->paginate($perPage)->withQueryString();
 
         return response()->json([
             'success' => true,

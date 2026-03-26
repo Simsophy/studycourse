@@ -38,7 +38,7 @@
             </div>
 
             <div class="p-5 flex-grow">
-                <h3 class="text-lg font-bold text-gray-900 mb-2 truncate">{{ $course->title }}</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 truncate">{{ $course->name }}</h3>
                 <p class="text-gray-500 text-sm line-clamp-3 mb-4">{{ $course->description }}</p>
                 
                 @if($course->lessons->count() > 0)

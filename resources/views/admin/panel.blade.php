@@ -1,67 +1,173 @@
 @extends('layouts.admin')
 
 @section('title', 'Admin Panel')
-@section('page-title', 'Dashboard Overview')
 
 @section('sidebar')
-<nav class="flex flex-col space-y-1">
-    <a href="{{ route('admin.panel') }}" 
-       class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-indigo-600 text-white shadow-lg shadow-indigo-900/20 transition-all">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-        <span class="font-medium">Dashboard</span>
+<nav class="space-y-5">
+    <div class="px-3">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.3em] text-indigo-300/70">Main</p>
+    </div>
+
+    <a href="{{ route('admin.panel') }}"
+       class="flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold {{ request()->routeIs('admin.panel') || request()->routeIs('admin.dashboard') ? 'bg-indigo-500/20 text-white border border-indigo-300/40' : 'text-slate-300 hover:bg-white/10' }} transition">
+        <span>🏠</span>
+        <span>Dashboard</span>
     </a>
 
-    <a href="{{ route('admin.users.index') }}" 
-       class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-        <span class="font-medium">Users</span>
+    <a href="{{ route('admin.users.index') }}"
+       class="flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold {{ request()->routeIs('admin.users.*') ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-300/40' : 'text-slate-300 hover:bg-white/10' }} transition">
+        <span>👥</span>
+        <span>Students</span>
     </a>
 
-    <a href="{{ route('admin.courses.index') }}" 
-       class="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-        <span class="font-medium">Courses</span>
+    <a href="{{ route('admin.courses.index') }}"
+       class="flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold {{ request()->routeIs('admin.courses.*') ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-300/40' : 'text-slate-300 hover:bg-white/10' }} transition">
+        <span>📚</span>
+        <span>Courses</span>
+    </a>
+
+    <a href="{{ route('admin.contacts.index') }}"
+       class="flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold {{ request()->routeIs('admin.contacts.*') ? 'bg-amber-500/20 text-amber-100 border border-amber-300/40' : 'text-slate-300 hover:bg-white/10' }} transition">
+        <span>📨</span>
+        <span>Contacts</span>
     </a>
 </nav>
 @endsection
 
 @section('content')
-<div class="py-6">
-    <div class="mb-10">
-        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Welcome back, <span class="text-indigo-600">{{ auth('admin')->user()->username }}</span>!
-        </h1>
-        <p class="text-slate-500 mt-2 text-lg">Here’s what’s happening with your study platform today.</p>
-    </div>
+@php
+    $avgLessons = $stats['courses'] > 0 ? round($stats['lessons'] / $stats['courses'], 1) : 0;
+    $enrollRate = $stats['users'] > 0 ? min(100, round(($stats['enrollments'] / $stats['users']) * 100)) : 0;
+@endphp
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl">
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-indigo-50 p-3 rounded-xl">
-                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
-                <span class="text-xs font-bold text-green-500 bg-green-50 px-2 py-1 rounded-full">+4%</span>
+<div class="space-y-8 p-6">
+    <section class="relative overflow-hidden rounded-[2.5rem] bg-indigo-900 p-10 shadow-2xl border-4 border-indigo-500/20">
+        <div class="absolute top-0 right-0 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl -mr-20"></div>
+        
+        <div class="relative z-10">
+            <h2 class="text-4xl md:text-5xl font-black text-white leading-tight">
+                Welcome back, <span class="text-indigo-400">{{ auth('admin')->user()->username }}</span>
+            </h2>
+            <p class="mt-4 text-indigo-200 text-xl font-medium max-w-xl">
+                The academy is performing <span class="text-emerald-400 font-black">excellently</span> today with a <span class="underline decoration-indigo-400">{{ $enrollRate }}%</span> conversion rate.
+            </p>
+            
+            <div class="mt-8 flex gap-4">
+                <a href="{{ route('admin.courses.create') }}" class="px-8 py-4 bg-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-indigo-500/40 hover:bg-indigo-400 transition-all">
+                    Publish Course
+                </a>
+                <a href="{{ route('admin.users.create') }}" class="px-8 py-4 bg-transparent border-2 border-indigo-400 text-indigo-300 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-400/10 transition-all">
+                    Register User
+                </a>
             </div>
-            <h3 class="text-slate-500 font-medium">Total Users</h3>
-            <p class="text-4xl font-bold text-slate-900 my-2">123</p>
-            <a href="{{ route('admin.users.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center">
-                View detailed list <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </a>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <article class="bg-indigo-50 rounded-3xl p-6 border-2 border-indigo-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Total Students</p>
+            <p class="text-4xl font-black text-indigo-900 mt-2">{{ number_format($stats['users']) }}</p>
+            <p class="text-xs font-bold text-indigo-400 mt-4 flex items-center gap-1">
+                <span class="text-indigo-600">●</span> Active Directory
+            </p>
+        </article>
+
+        <article class="bg-rose-50 rounded-3xl p-6 border-2 border-rose-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500">Live Courses</p>
+            <p class="text-4xl font-black text-rose-900 mt-2">{{ number_format($stats['courses']) }}</p>
+            <p class="text-xs font-bold text-rose-400 mt-4 flex items-center gap-1">
+                <span class="text-rose-600">●</span> Managed Catalog
+            </p>
+        </article>
+
+        <article class="bg-emerald-50 rounded-3xl p-6 border-2 border-emerald-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Modules/Lessons</p>
+            <p class="text-4xl font-black text-emerald-900 mt-2">{{ number_format($stats['lessons']) }}</p>
+            <p class="text-xs font-bold text-emerald-400 mt-4 flex items-center gap-1">
+                <span class="text-emerald-600">●</span> Content Published
+            </p>
+        </article>
+
+        <article class="bg-amber-50 rounded-3xl p-6 border-2 border-amber-100 shadow-sm">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Total Enrollments</p>
+            <p class="text-4xl font-black text-amber-900 mt-2">{{ number_format($stats['enrollments']) }}</p>
+            <p class="text-xs font-bold text-amber-500 mt-4 flex items-center gap-1">
+                <span class="text-amber-600">●</span> Successful Sales
+            </p>
+        </article>
+    </section>
+
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div class="bg-white rounded-[2.5rem] p-8 border-2 border-slate-100 shadow-sm">
+            <h3 class="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                <span class="p-2 bg-indigo-600 rounded-xl text-white">📈</span>
+                Growth Analytics
+            </h3>
+
+            <div class="space-y-8">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-black text-indigo-900 uppercase tracking-tighter">Student Engagement</span>
+                        <span class="px-3 py-1 bg-indigo-600 text-white rounded-full text-xs font-black">{{ $enrollRate }}%</span>
+                    </div>
+                    <div class="w-full h-4 bg-indigo-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.4)]" style="width: {{ $enrollRate }}%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-black text-rose-900 uppercase tracking-tighter">Content Density</span>
+                        <span class="px-3 py-1 bg-rose-600 text-white rounded-full text-xs font-black">{{ $avgLessons }} avg</span>
+                    </div>
+                    <div class="w-full h-4 bg-rose-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-rose-600 rounded-full shadow-[0_0_15px_rgba(225,29,72,0.4)]" style="width: {{ min(100, $avgLessons * 10) }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 p-6 rounded-3xl bg-slate-900 text-white">
+                <p class="text-indigo-400 font-black text-xs uppercase tracking-widest">Admin Tip</p>
+                <p class="mt-2 font-bold text-lg leading-snug">
+                    Your <span class="text-rose-400">Content Density</span> is lower than usual. Add <span class="text-emerald-400">2-3 more lessons</span> per course to increase ranking!
+                </p>
+            </div>
         </div>
 
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-amber-50 p-3 rounded-xl">
-                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                </div>
-                <span class="text-xs font-bold text-amber-500 bg-amber-50 px-2 py-1 rounded-full">New</span>
+        <div class="bg-white rounded-[2.5rem] p-8 border-2 border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-black text-slate-900 flex items-center gap-3">
+                    <span class="p-2 bg-emerald-500 rounded-xl text-white">✨</span>
+                    New Students
+                </h3>
+                <a href="{{ route('admin.users.index') }}" class="text-sm font-black text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">View List</a>
             </div>
-            <h3 class="text-slate-500 font-medium">Total Courses</h3>
-            <p class="text-4xl font-bold text-slate-900 my-2">45</p>
-            <a href="{{ route('admin.courses.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center">
-                Manage curriculum <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </a>
+
+            <div class="space-y-4">
+                @foreach($recentUsers as $user)
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-indigo-500 hover:bg-white transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-900 text-indigo-100 flex items-center justify-center font-black text-lg group-hover:scale-110 transition-transform">
+                            {{ substr($user->name, 0, 1) }}
+                        </div>
+                        <div>
+                            <p class="font-black text-indigo-950">{{ $user->name }}</p>
+                            <p class="text-xs font-bold text-indigo-400/80">{{ $user->email }}</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-indigo-600 transition-colors">
+                        {{ $user->created_at->diffForHumans() }}
+                    </span>
+                </div>
+                @endforeach
+            </div>
         </div>
-    </div>
+    </section>
 </div>
+
+<style>
+    /* Adding extra clarity through typography */
+    body { font-family: 'Inter', sans-serif; }
+    .font-black { letter-spacing: -0.02em; }
+</style>
 @endsection

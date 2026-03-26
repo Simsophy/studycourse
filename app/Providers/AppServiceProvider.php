@@ -2,8 +2,16 @@
 
 namespace App\Providers;
 
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Models\Admin;
+use App\Models\Course;
+use App\Models\User;
+use App\Policies\CoursePolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\App;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,8 +28,48 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
-            return config('app.frontend_url')."/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
+        RateLimiter::for('auth-login', function (Request $request) {
+            $identifier = (string) ($request->input('login') ?? $request->input('email') ?? 'unknown');
+
+            return [
+                Limit::perMinute(5)->by(strtolower($identifier).'|'.$request->ip()),
+            ];
         });
+
+        RateLimiter::for('auth-register', function (Request $request) {
+            return [
+                Limit::perMinute(3)->by($request->ip()),
+            ];
+        });
+
+        RateLimiter::for('auth-password-reset', function (Request $request) {
+            $email = (string) ($request->input('email') ?? 'unknown');
+
+            return [
+                Limit::perMinute(3)->by(strtolower($email).'|'.$request->ip()),
+            ];
+        });
+
+        $supportedLocales = ['en', 'kh'];
+        $locale = session('locale');
+
+        if (in_array($locale, $supportedLocales, true)) {
+            App::setLocale($locale);
+        }
+
+        Gate::policy(Course::class, CoursePolicy::class);
+
+        Gate::define('access-admin-panel', function ($actor): bool {
+            return $actor instanceof Admin;
+        });
+
+        Gate::define('access-student-area', function ($actor): bool {
+            return $actor instanceof User;
+        });
+
+        Gate::define('manage-users', function ($actor): bool {
+            return $actor instanceof Admin;
+        });
+
     }
 }

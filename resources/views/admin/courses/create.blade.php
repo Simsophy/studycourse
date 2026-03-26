@@ -2,7 +2,6 @@
 
 @section('title', 'Add Course')
 @section('page-title', 'Add Course')
-@include('courses.video_form')
 @section('content')
 <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
     <h2 class="text-2xl font-bold mb-8 text-gray-800 text-center">Add New Course</h2>
@@ -14,7 +13,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Course Name</label>
             <input type="text" name="name" value="{{ old('name') }}" 
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" 
-                placeholder="Enter course title" required>
+                placeholder="Enter course title">
             @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
         </div>
 
@@ -33,11 +32,7 @@
                     class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 @error('image') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
             </div>
-<form action="{{ route('admin.videos.upload') }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    <input type="file" name="video_file" required>
-    <button type="submit">Upload Video</button>
-</form>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Lesson Title</label>
                 <input type="text" name="lesson_title" value="{{ old("lesson_title") }}" 

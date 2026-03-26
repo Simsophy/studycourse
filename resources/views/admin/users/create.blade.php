@@ -36,6 +36,25 @@
             @enderror
         </div>
 
+        <div class="border rounded-lg p-4 bg-gray-50">
+            <p class="font-semibold text-gray-700 mb-3">User Permissions</p>
+
+            <label class="flex items-center gap-2 mb-2">
+                <input type="checkbox" name="can_view_content" value="1" {{ old('can_view_content', 1) ? 'checked' : '' }}>
+                <span>Can View Lessons</span>
+            </label>
+
+            <label class="flex items-center gap-2 mb-2">
+                <input type="checkbox" name="can_save_content" value="1" {{ old('can_save_content', 1) ? 'checked' : '' }}>
+                <span>Can Save / Enroll Courses</span>
+            </label>
+
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="can_download_content" value="1" {{ old('can_download_content', 0) ? 'checked' : '' }}>
+                <span>Can Download Lesson Video</span>
+            </label>
+        </div>
+
         <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded transition">
             Create User
         </button>

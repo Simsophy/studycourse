@@ -11,7 +11,6 @@ class Lesson extends Model
         'title',
         'description',
         'video_url',
-        'image',
         'admin_id'
     ];
 
@@ -24,5 +23,11 @@ class Lesson extends Model
 public function admin()
 {
     return $this->belongsTo(Admin::class);
+}
+
+public function users()
+{
+    return $this->belongsToMany(User::class, 'lesson_user', 'lesson_id', 'user_id')
+        ->withTimestamps();
 }
 }
