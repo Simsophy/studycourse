@@ -87,4 +87,10 @@
         </div>
     @endforelse
 </div>
+
+@if($courses instanceof \Illuminate\Pagination\LengthAwarePaginator && $courses->hasPages())
+    <div class="mt-8">
+        {{ $courses->links() }}
+    </div>
+@endif
 @endsection

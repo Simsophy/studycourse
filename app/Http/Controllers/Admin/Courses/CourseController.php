@@ -13,7 +13,10 @@ class CourseController extends Controller
     {
         $this->authorize('viewAny', Course::class);
 
-        $courses = Course::all();
+        $courses = Course::with(['lessons.admin'])
+            ->latest('id')
+            ->paginate(9);
+
         return view('admin.courses.index', compact('courses'));
     }
 
