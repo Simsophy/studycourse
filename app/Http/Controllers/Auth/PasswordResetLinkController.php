@@ -25,6 +25,14 @@ class PasswordResetLinkController extends Controller
         $email = $request->input('email');
         $otp = (string) random_int(100000, 999999);
 
+        if (
+            app()->environment('local')
+            && config('mail.force_log_in_local')
+            && config('mail.default') === 'smtp'
+        ) {
+            config(['mail.default' => 'log']);
+        }
+
         try {
             DB::table('password_reset_tokens')->updateOrInsert(
                 ['email' => $email],
@@ -41,6 +49,10 @@ class PasswordResetLinkController extends Controller
             Log::error('Password reset OTP sending failed.', [
                 'email' => $email,
                 'message' => $exception->getMessage(),
+                'mailer' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'mail_port' => config('mail.mailers.smtp.port'),
+                'mail_scheme' => config('mail.mailers.smtp.scheme'),
             ]);
 
             return back()->withErrors([
