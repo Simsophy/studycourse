@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'force_log_in_local' => env('MAIL_FORCE_LOG_IN_LOCAL', true),
+    'force_log_in_local' => env('MAIL_FORCE_LOG_IN_LOCAL', false),
 
     /*
     |--------------------------------------------------------------------------
