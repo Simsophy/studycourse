@@ -105,8 +105,12 @@ After running the seeder, you can log in with these default accounts:
   - Login: `user` (or `user@example.com`)
   - Password: `12345678`
 
+  - Login: `user` (or sothpanha682@gmail.com`)
+  - Password: `12345678`
+
 Run seeders:
 
 ```bash
 php artisan db:seed
 ```
+
