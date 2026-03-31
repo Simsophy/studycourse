@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('admins')) {
+            return;
+        }
+
         Schema::create('admins', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -16,11 +20,6 @@ return new class extends Migration
             $table->enum('role', ['admin','developer'])->default('admin');
             $table->timestamps();
         });
-        Admin::create([
-    'name' => 'Sophy',
-    'email' => 'Sophy@gmail.com',
-    'password' => Hash::make('123456')
-]);
     }
 
     public function down(): void

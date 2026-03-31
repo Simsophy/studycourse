@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => trim((string) env('MAIL_MAILER', 'log')),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,12 +51,12 @@ return [
 
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
+            'scheme' => (($scheme = trim((string) env('MAIL_SCHEME', env('MAIL_ENCRYPTION', '')))) !== '') ? $scheme : null,
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', '127.0.0.1'),
+            'host' => trim((string) env('MAIL_HOST', '127.0.0.1')),
             'port' => env('MAIL_PORT', 2525),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+            'username' => (($username = env('MAIL_USERNAME')) !== null) ? trim((string) $username) : null,
+            'password' => (($password = env('MAIL_PASSWORD')) !== null) ? trim((string) $password) : null,
             'timeout' => (int) env('MAIL_TIMEOUT', 10),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
@@ -123,8 +123,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => trim((string) env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+        'name' => trim((string) env('MAIL_FROM_NAME', 'Example')),
     ],
 
 ];
