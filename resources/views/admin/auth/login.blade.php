@@ -44,6 +44,9 @@
                 autocomplete="current-password"
                 required
             >
+            <div class="text-right">
+                <a href="{{ route('admin.password.request') }}" class="text-sm text-indigo-600 hover:underline">Forgot password?</a>
+            </div>
             <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700">
                 Login
             </button>

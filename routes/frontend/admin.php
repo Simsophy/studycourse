@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\Courses\CourseController as AdminCourseController;
 use App\Http\Controllers\Admin\Contacts\ContactController as AdminContactPageController;
+use App\Http\Controllers\Admin\Auth\NewPasswordController as AdminNewPasswordController;
+use App\Http\Controllers\Admin\Auth\PasswordResetLinkController as AdminPasswordResetLinkController;
 use App\Http\Controllers\Admin\Dashboard\DashboardController;
 use App\Http\Controllers\Admin\Users\UserController as AdminUserController;
 use App\Http\Controllers\VideoController;
@@ -19,16 +21,30 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/login', [DashboardController::class, 'login'])
             ->middleware('throttle:auth-login')
             ->name('login.submit');
+
+        Route::get('/forgot-password', [AdminPasswordResetLinkController::class, 'create'])
+            ->name('password.request');
+        Route::post('/forgot-password', [AdminPasswordResetLinkController::class, 'store'])
+            ->middleware('throttle:auth-password-reset')
+            ->name('password.email');
+
+        Route::get('/reset-password', [AdminNewPasswordController::class, 'create'])
+            ->name('password.reset');
+        Route::post('/reset-password', [AdminNewPasswordController::class, 'store'])
+            ->name('password.store');
+    });
+
+    Route::middleware('auth:admin')->group(function () {
+        Route::get('/logout', function () {
+            return view('admin.auth.logout');
+        })->name('logout.form');
+        Route::post('/logout', [DashboardController::class, 'logout'])->name('logout');
     });
 
     Route::middleware(['auth:admin', 'can:access-admin-panel'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashbord', [DashboardController::class, 'index'])->name('dashbord');
         Route::get('/panel', [DashboardController::class, 'index'])->name('panel');
-        Route::get('/logout', function () {
-            return view('admin.auth.logout');
-        })->name('logout.form');
-        Route::post('/logout', [DashboardController::class, 'logout'])->name('logout');
 
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');

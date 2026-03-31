@@ -19,14 +19,6 @@ class EmailVerificationNotificationController extends Controller
             return redirect()->intended('/dashboard');
         }
 
-        if (
-            app()->environment('local')
-            && config('mail.force_log_in_local')
-            && config('mail.default') === 'smtp'
-        ) {
-            config(['mail.default' => 'log']);
-        }
-
         try {
             $request->user()->sendEmailVerificationNotification();
         } catch (\Throwable $exception) {

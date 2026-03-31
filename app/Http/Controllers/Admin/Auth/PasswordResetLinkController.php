@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -13,20 +13,20 @@ class PasswordResetLinkController extends Controller
 {
     public function create()
     {
-        return view('auth.forgot-password');
+        return view('admin.auth.forgot-password');
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email|exists:admins,email',
         ]);
 
         $email = $request->input('email');
         $otp = (string) random_int(100000, 999999);
 
         try {
-            DB::table('password_reset_tokens')->updateOrInsert(
+            DB::table('admin_password_reset_tokens')->updateOrInsert(
                 ['email' => $email],
                 [
                     'token' => Hash::make($otp),
@@ -34,9 +34,9 @@ class PasswordResetLinkController extends Controller
                 ]
             );
 
-            $this->sendOtpMail($email, $otp, 'Your Password Reset Code');
+            $this->sendOtpMail($email, $otp, 'Your Admin Password Reset Code');
         } catch (\Throwable $exception) {
-            Log::error('Password reset OTP sending failed.', [
+            Log::error('Admin password reset OTP sending failed.', [
                 'email' => $email,
                 'message' => $exception->getMessage(),
                 'mailer' => config('mail.default'),
@@ -50,7 +50,7 @@ class PasswordResetLinkController extends Controller
             ]);
         }
 
-        return redirect()->route('password.reset', ['email' => $email])
+        return redirect()->route('admin.password.reset', ['email' => $email])
             ->with('status', __('A 6-digit verification code has been sent to your email.'));
     }
 
