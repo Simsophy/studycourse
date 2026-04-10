@@ -7,6 +7,22 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * ============================================================================
+ * [ SYSTEM DATA STRUCTURE ] : Educational Content Seeder
+ * ============================================================================
+ * 
+ * ROLE:
+ * This component defines the initial state and relational structure 
+ * of the core education system.
+ * 
+ * DATA HIERARCHY:
+ * Admin (Owner) -> Course (Container) -> Lesson (Content) -> Documents (Materials)
+ * 
+ * AUTOMATION:
+ * This seeder automatically handles student enrollment triggers to ensure
+ * content is accessible immediately upon system deployment.
+ */
 class DefaultAdminCourseLessonSeeder extends Seeder
 {
     /**
@@ -41,7 +57,9 @@ class DefaultAdminCourseLessonSeeder extends Seeder
                     $userData['email_verified_at'] = $now;
                 }
 
-                DB::table('users')->insert($userData);
+                $userId = DB::table('users')->insertGetId($userData);
+            } else {
+                $userId = DB::table('users')->where('email', $defaultUserEmail)->value('id');
             }
         }
 
@@ -150,6 +168,16 @@ class DefaultAdminCourseLessonSeeder extends Seeder
                 }
 
                 $courseId = DB::table('courses')->insertGetId($courseData);
+                
+                // Enroll default user
+                if (isset($userId)) {
+                    DB::table('course_user')->insert([
+                        'user_id' => $userId,
+                        'course_id' => $courseId,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
             } else {
                 $courseId = $course->id;
             }
@@ -185,6 +213,35 @@ class DefaultAdminCourseLessonSeeder extends Seeder
                 }
 
                 DB::table('lessons')->insert($lessonData);
+            }
+
+            // Seed course materials (documents)
+            if (Schema::hasTable('course_materials')) {
+                $materialExists = DB::table('course_materials')->where('course_id', $courseId)->exists();
+                if (!$materialExists) {
+                    DB::table('course_materials')->insert([
+                        [
+                            'course_id' => $courseId,
+                            'title' => 'Course Syllabus',
+                            'type' => 'document',
+                            'file_path' => 'syllabus_' . $courseId . '.pdf',
+                            'description' => 'Complete syllabus for ' . $courseSeed['name'],
+                            'order' => 1,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ],
+                        [
+                            'course_id' => $courseId,
+                            'title' => 'Lecture Notes',
+                            'type' => 'document',
+                            'file_path' => 'notes_' . $courseId . '.pdf',
+                            'description' => 'Supplementary notes for ' . $courseSeed['name'],
+                            'order' => 2,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ],
+                    ]);
+                }
             }
         }
     }

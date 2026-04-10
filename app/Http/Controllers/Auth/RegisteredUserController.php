@@ -6,44 +6,37 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 
 class RegisteredUserController extends Controller
 {
     /**
-     * Show the registration form for students.
+     * Handle an incoming registration request.
+     *
+     * @throws ValidationException
      */
-    public function create()
+    public function store(Request $request): Response
     {
-        return view('auth.register'); // your register blade
-    }
-
-    /**
-     * Handle a registration request for students.
-     */
-    public function store(Request $request)
-    {
-        // Validate input
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|confirmed|min:8',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Create student user
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => bcrypt($request->password), // Hash the password
+            'password' => Hash::make($request->string('password')),
         ]);
 
-        // Fire the Registered event
         event(new Registered($user));
 
-        // Log in the user immediately
         Auth::login($user);
 
-        // Redirect to student dashboard
-        return redirect()->route('user.dashboard');
+        return response()->noContent();
     }
 }

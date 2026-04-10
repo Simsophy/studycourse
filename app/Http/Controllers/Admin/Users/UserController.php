@@ -12,7 +12,7 @@ class UserController extends Controller
     // List all users
     public function index()
     {
-        Gate::authorize('manage-users');
+        \Illuminate\Support\Facades\Gate::forUser(auth('admin')->user())->authorize('manage-users');
 
         $users = User::all();
         return view('admin.users.index', compact('users'));
@@ -21,7 +21,7 @@ class UserController extends Controller
     // Show create form
     public function create()
     {
-        Gate::authorize('manage-users');
+        \Illuminate\Support\Facades\Gate::forUser(auth('admin')->user())->authorize('manage-users');
 
         return view('admin.users.create');
     }
@@ -29,7 +29,7 @@ class UserController extends Controller
     // Store new user
     public function store(Request $request)
     {
-        Gate::authorize('manage-users');
+        \Illuminate\Support\Facades\Gate::forUser(auth('admin')->user())->authorize('manage-users');
 
         $request->validate([
             'name'=>'required',
@@ -55,7 +55,7 @@ class UserController extends Controller
     // Edit user
     public function edit(User $user)
     {
-        Gate::authorize('manage-users');
+        \Illuminate\Support\Facades\Gate::forUser(auth('admin')->user())->authorize('manage-users');
 
         return view('admin.users.edit', compact('user'));
     }
@@ -63,7 +63,7 @@ class UserController extends Controller
     // Update user
     public function update(Request $request, User $user)
     {
-        Gate::authorize('manage-users');
+        \Illuminate\Support\Facades\Gate::forUser(auth('admin')->user())->authorize('manage-users');
 
         $request->validate([
             'name'=>'required',
@@ -92,7 +92,7 @@ class UserController extends Controller
     // Delete user
     public function destroy(User $user)
     {
-        Gate::authorize('manage-users');
+        \Illuminate\Support\Facades\Gate::forUser(auth('admin')->user())->authorize('manage-users');
 
         $user->delete();
         return redirect()->route('admin.users.index');

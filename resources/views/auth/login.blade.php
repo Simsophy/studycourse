@@ -29,6 +29,7 @@
            <div>
     <label class="block text-gray-600 mb-1">Username</label>
     <input type="text" name="login" placeholder="Username"
+           autocomplete="username"
            class="w-full p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400" required>
 </div>
 

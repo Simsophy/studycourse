@@ -5,37 +5,27 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login form.
+     * Handle an incoming authentication request.
      */
-   public function create() {
-    return view('auth.login');
-}
+    public function store(LoginRequest $request): Response
+    {
+        $request->authenticate();
 
-public function store(Request $request)
-{
-    $credentials = $request->validate([
-        'email' => ['required','email'],
-        'password' => ['required'],
-    ]);
-
-    // Default guard (users)
-    if (Auth::attempt($credentials)) {
         $request->session()->regenerate();
 
-        return redirect()->route('students.dashboard'); // Student dashboard
+        return response()->noContent();
     }
 
-    return back()->withErrors([
-        'email' => 'Invalid credentials',
-    ]);
-}
-    public function destroy(Request $request): RedirectResponse
+    /**
+     * Destroy an authenticated session.
+     */
+    public function destroy(Request $request): Response
     {
         Auth::guard('web')->logout();
 
@@ -43,6 +33,6 @@ public function store(Request $request)
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return response()->noContent();
     }
 }

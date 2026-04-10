@@ -1,14 +1,10 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Server/API Route Entry Point
-|--------------------------------------------------------------------------
-|
-| To keep server concerns separated logically, this file now delegates
-| to dedicated route files under routes/server.
-|
-*/
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
-require __DIR__.'/server/health.php';
-require __DIR__.'/server/contacts.php';
+Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::post('/payments/khqr/generate', [\App\Http\Controllers\Api\DynamicKHQRController::class, 'generate']);

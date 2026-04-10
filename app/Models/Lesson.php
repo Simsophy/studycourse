@@ -1,33 +1,36 @@
-<?php
+<?php // Opening PHP tag
 
-namespace App\Models;
+namespace App\Models; // Define the namespace for application models
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model; // Import the base Eloquent model class
 
-class Lesson extends Model
+class Lesson extends Model // Define the Lesson model class
 {
-    protected $fillable = [
-        'course_id',
-        'title',
-        'description',
-        'video_url',
-        'admin_id'
+    // Attributes that can be filled via mass assignment
+    protected $fillable = [ 
+        'course_id', // Foreign key linking to the parent Course
+        'title', // The display name of the specific lesson
+        'description', // Brief summary or transcript of the lesson content
+        'video_url', // Path or Link to the hosted video file
+        'admin_id' // Foreign key linking to the Admin who uploaded this lesson
     ];
 
-    // Lesson belongs to a course
-  public function course()
-{
-    return $this->belongsTo(Course::class);
-}
+    // Define the relationship: Each lesson belongs to exactly one parent Course
+    public function course() // Relationship method
+    {
+        return $this->belongsTo(Course::class); // Establish Inverse One-to-Many relationship
+    }
 
-public function admin()
-{
-    return $this->belongsTo(Admin::class);
-}
+    // Define the relationship: Track which Admin created/uploaded this specific lesson
+    public function admin() // Relationship method
+    {
+        return $this->belongsTo(Admin::class); // Establish relationship with Admin model
+    }
 
-public function users()
-{
-    return $this->belongsToMany(User::class, 'lesson_user', 'lesson_id', 'user_id')
-        ->withTimestamps();
-}
-}
+    // Define the relationship: Track which students have viewed or unlocked this lesson
+    public function users() // Many-to-Many relationship for lesson-level progress
+    {
+        return $this->belongsToMany(User::class, 'lesson_user', 'lesson_id', 'user_id') // Link via pivot table
+            ->withTimestamps(); // Track exact viewing times for "Resume" features
+    }
+} // End of lesson model class

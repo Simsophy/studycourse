@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('user')->name('user.')->middleware(['auth', 'can:access-student-area'])->group(function () {
+Route::prefix('user')->name('user.')->middleware(['auth'])->group(function () {
+    
     Route::get('/logout', function () {
         return view('auth.logout');
     })->name('logout.form');

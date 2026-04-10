@@ -28,3 +28,7 @@ Route::get('/locale/{locale}', function (Request $request, string $locale) {
 Route::get('/', function () {
     return response()->view('auth.login');
 });
+
+Route::get('/system/portfolio', function () {
+    return view('system.portfolio');
+})->name('system.portfolio');

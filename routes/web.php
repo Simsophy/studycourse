@@ -1,16 +1,13 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Frontend Route Entry Point
-|--------------------------------------------------------------------------
-|
-| To keep frontend concerns separated logically, this file now delegates
-| to dedicated route files under routes/frontend.
-|
-*/
+use Illuminate\Support\Facades\Route;
 
-require __DIR__.'/frontend/system.php';
+Route::get('/', function () {
+    return ['Laravel' => app()->version()];
+});
+
 require __DIR__.'/frontend/auth.php';
-require __DIR__.'/frontend/student.php';
 require __DIR__.'/frontend/admin.php';
+require __DIR__.'/frontend/student.php';
+require __DIR__.'/frontend/system.php';
+

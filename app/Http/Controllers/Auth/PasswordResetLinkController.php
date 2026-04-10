@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class PasswordResetLinkController extends Controller
 {
@@ -34,15 +35,14 @@ class PasswordResetLinkController extends Controller
                 ]
             );
 
-            $this->sendOtpMail($email, $otp, 'Your Password Reset Code');
+            // Send OTP email
+            Mail::send('emails.password-otp', ['otp' => $otp, 'email' => $email], function ($message) use ($email) {
+                $message->to($email)->subject('Your Password Reset Code');
+            });
         } catch (\Throwable $exception) {
-            Log::error('Password reset OTP sending failed.', [
+            Log::error('Student password reset OTP sending failed.', [
                 'email' => $email,
                 'message' => $exception->getMessage(),
-                'mailer' => config('mail.default'),
-                'mail_host' => config('mail.mailers.smtp.host'),
-                'mail_port' => config('mail.mailers.smtp.port'),
-                'mail_scheme' => config('mail.mailers.smtp.scheme'),
             ]);
 
             return back()->withErrors([
@@ -52,12 +52,5 @@ class PasswordResetLinkController extends Controller
 
         return redirect()->route('password.reset', ['email' => $email])
             ->with('status', __('A 6-digit verification code has been sent to your email.'));
-    }
-
-    private function sendOtpMail(string $email, string $otp, string $subject): void
-    {
-        Mail::send('emails.password-otp', ['otp' => $otp, 'email' => $email], function ($message) use ($email, $subject) {
-            $message->to($email)->subject($subject);
-        });
     }
 }

@@ -3,46 +3,92 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
+use Illuminate\Validation\ValidationException;
 
 class NewPasswordController extends Controller
 {
-    public function create()
+    /**
+     * Show the reset password form.
+     */
+    public function create(Request $request)
     {
-        return view('auth.reset-password');
+        $email = $request->query('email');
+
+        if (! $email) {
+            return redirect()->route('password.request');
+        }
+
+        // Check if OTP exists for this email
+        $resetRecord = DB::table('password_reset_tokens')->where('email', $email)->first();
+
+        if (! $resetRecord) {
+            return redirect()->route('password.request')->withErrors([
+                'email' => __('Invalid or expired verification code. Please request a new one.'),
+            ]);
+        }
+
+        return view('auth.reset-password', ['email' => $email]);
     }
 
+    /**
+     * Handle an incoming new password request.
+     *
+     * @throws ValidationException
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
-            'otp' => 'required|digits:6',
+            'email' => ['required', 'email'],
+            'otp' => ['required', 'digits:6'],
             'password' => ['required', 'confirmed', PasswordRule::min(8)->letters()->numbers()],
         ]);
 
-        $reset = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->first();
+        $email = $request->input('email');
+        $otp = $request->input('otp');
 
-        if (! $reset || ! Hash::check($request->otp, $reset->token)) {
-            return back()->withErrors(['otp' => __('Invalid verification code.')])->withInput($request->only('email'));
+        // Find the OTP record
+        $resetRecord = DB::table('password_reset_tokens')->where('email', $email)->first();
+
+        if (! $resetRecord) {
+            return back()->withErrors(['otp' => __('Invalid or expired verification code.')])->withInput();
         }
 
-        if (now()->diffInMinutes(Carbon::parse($reset->created_at)) > 15) {
-            return back()->withErrors(['otp' => __('Verification code has expired. Please request a new one.')])->withInput($request->only('email'));
+        // Verify OTP
+        if (! Hash::check($otp, $resetRecord->token)) {
+            return back()->withErrors(['otp' => __('Invalid verification code.')])->withInput();
         }
 
-        $user = User::where('email', $request->email)->first();
+        // Check if OTP expired (15 minutes)
+        if (now()->diffInMinutes(Carbon::parse($resetRecord->created_at)) > 15) {
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+            return back()->withErrors(['otp' => __('Verification code has expired. Please request a new one.')])->withInput();
+        }
+
+        // Reset the user's password
+        $user = \App\Models\User::where('email', $email)->first();
+
+        if (! $user) {
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            return back()->withErrors(['email' => __('User not found.')])->withInput();
+        }
+
         $user->password = Hash::make($request->password);
+        $user->remember_token = Str::random(60);
         $user->save();
 
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        // Delete the OTP record
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
 
-        return redirect()->route('login')->with('status', __('Password reset successful. You can now log in.'));
+        event(new PasswordReset($user));
+
+        return redirect()->route('login')->with('status', __('Your password has been reset. You can now log in with your new password.'));
     }
 }
